@@ -37,7 +37,11 @@ function userRegistration(filePath) {
     let data = fs.readFileSync(filePath, 'utf8')
     data = data.split('\r\n')
     while (true) {
-        let email = prompt("Введіть адресу вашої пошти: ")
+        let email = prompt("Введіть адресу вашої пошти (Напишіть < exit > щоб припинити реєстрацію): ")
+        if (email == "exit"){
+            console.log("Припиняємо процес реєстрації")
+            return
+        }
         for (let i = 0; i < data.length; i++) {
             if (email == data[i].split(',')[0]) {
                 console.log(`Користувач ${email} вже зареэстрований`)
@@ -85,7 +89,12 @@ const userLogIn = (filePath) => {
             else {
                 data = data.split('\r\n')
                 while (true) {
-                    let email = prompt("Введіть адресу вашої пошти: ")
+                    let email = prompt("Введіть адресу вашої пошти (Напишіть < exit > щоб припинити авторизацію): ")
+                    if (email == "exit"){
+                        console.log("Припиняємо процес авторизації")
+                        resolve();
+                        return
+                    }
                     for (let i = 0; i < data.length; i++) {
                         if (email == data[i].split(',')[0]) {
                             for (let j = 2; j >= 0; j--) {
@@ -117,7 +126,11 @@ function userPaswordReset(filePath) {
     let data = fs.readFileSync(filePath, 'utf8')
     data = data.split('\r\n')
     while (true) {
-        let email = prompt("Введіть адресу вашої пошти: ")
+        let email = prompt("Введіть адресу вашої пошти (Напишіть < exit > щоб припинити скидання паролю): ")
+        if (email == "exit"){
+            console.log("Припиняємо процес скидання паролю")
+            return
+        }
         for (let i = 0; i < data.length; i++) {
             if (email == data[i].split(',')[0]) {
                 const salt = crypto.randomBytes(16).toString('hex')
