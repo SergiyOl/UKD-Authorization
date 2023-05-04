@@ -37,54 +37,53 @@ const userRegistration = (filePath) => {
         console.log("Почато процес реєстрації")
         let data = fs.readFileSync(filePath, 'utf8')
         data = data.split('\r\n')
-        while (true) {
-            let email = prompt("Введіть адресу вашої пошти (Напишіть < exit > щоб припинити реєстрацію): ")
-            if (email == "exit"){
-                console.log("Припиняємо процес реєстрації")
+        let email = prompt("Введіть адресу вашої пошти (Напишіть < exit > щоб припинити реєстрацію): ")
+        if (email == "exit"){
+           console.log("Припиняємо процес реєстрації")
+           resolve();
+           return
+        }
+        for (let i = 0; i < data.length; i++) {
+           if (email == data[i].split(',')[0]) {
+               console.log(`Користувач ${email} вже зареэстрований`)
+               resolve();
+               return
+           }
+        }
+        let password = prompt("Введіть пароль: ")
+        const salt = crypto.randomBytes(16).toString('hex')
+        const token = otp.authenticator.generate(salt)
+        console.log("Відправляємо лист підтвердження")
+        transporter.sendMail(mailOptions(email, "Підтвердження реєстрації", `Код підтвердження ${token}`), function (err) {
+            if (err) {
+                console.log("Error " + err);
                 resolve();
                 return
-            }
-            for (let i = 0; i < data.length; i++) {
-                if (email == data[i].split(',')[0]) {
-                    console.log(`Користувач ${email} вже зареэстрований`)
-                    resolve();
-                    return
-                } else {
-                    let password = prompt("Введіть пароль: ")
-                    const salt = crypto.randomBytes(16).toString('hex')
-                    const token = otp.authenticator.generate(salt)
-                    console.log("Відправляємо лист підтвердження")
-                    transporter.sendMail(mailOptions(email, "Підтвердження реєстрації", `Код підтвердження ${token}`), function (err) {
-                        if (err) {
-                            console.log("Error " + err);
+            } else {
+                console.log("Лист підтвердження успішно відправлено")
+                for (let j = 2; j >= 0; j--) {
+                    if (prompt("Введіть код підтвердження: ") == token) {
+                        let fileContent = `${email},${password}`
+                        fs.appendFile(filePath, fileContent + '\r\n', () => {
+                            console.log(`Користувача зареєстровано`)
                             resolve();
-                            return
-                        } else {
-                            console.log("Лист підтвердження успішно відправлено")
-                            for (let j = 2; j >= 0; j--) {
-                                if (prompt("Введіть код підтвердження: ") == token) {
-                                    let fileContent = `${email},${password}`
-                                    fs.appendFile(filePath, fileContent + '\r\n', () => {
-                                        console.log(`Користувача зареєстровано`)
-                                        resolve();
-                                        return;
-                                    })
-                                    return;
-                                } else {
-                                    console.log(`Неправильний код підтвердження. Залишилось спроб ${j}`)
-                                    if (j == 0) {
-                                        console.log(`Не вдалося зареєструвати користувача`)
-                                        resolve();
-                                        return;
-                                    }
-                                }
-                            }
+                            return;
+                        })
+                        return;
+                    } else {
+                        console.log(`Неправильний код підтвердження. Залишилось спроб ${j}`)
+                        if (j == 0) {
+                            console.log(`Не вдалося зареєструвати користувача`)
+                            resolve();
+                            return;
                         }
-                    });
-                    return
+                    }
                 }
             }
-        }
+        });
+        return
+           
+       
     })
 }
 
